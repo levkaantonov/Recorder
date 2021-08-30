@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/recorderFragment">
+
+    <fragment
+        android:id="@+id/recorderFragment"
+        android:name="levkaantonov.com.study.recorder.ui.fragments.recorder.RecorderFragment"
+        android:label="fragment_recorder"
+        tools:layout="@layout/fragment_recorder" />
+    <fragment
+        android:id="@+id/listOfRecordsFragment"
+        android:name="levkaantonov.com.study.recorder.ui.fragments.list_of_records.ListOfRecordsFragment"
+        android:label="fragment_list_of_records"
+        tools:layout="@layout/fragment_list_of_records" />
+</navigation>
