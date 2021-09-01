@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun isServiceRunning(): Boolean {
+    fun isServiceRunning(): Boolean {
         val manager: ActivityManager =
             getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         manager.getRunningServices(Int.MAX_VALUE).forEach {

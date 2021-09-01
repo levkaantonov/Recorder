@@ -115,7 +115,10 @@ class RecordService : Service() {
     }
 
     private fun createNotification(): Notification? {
-        val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(
+            applicationContext,
+            getString(R.string.notification_channel_id)
+        )
             .setSmallIcon(R.drawable.ic_mic)
             .setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.recording))

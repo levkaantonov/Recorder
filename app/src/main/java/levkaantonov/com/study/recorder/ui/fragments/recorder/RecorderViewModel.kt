@@ -18,7 +18,7 @@ class RecorderViewModel(private val app: Application) : AndroidViewModel(app) {
     private val TRIGGER_TIME = "TRIGGER_AT"
     private val second: Long = 1000L
     private val _elapsedTime = MutableLiveData<String>()
-    private val elapsedTime: LiveData<String> = _elapsedTime
+    val elapsedTime: LiveData<String> = _elapsedTime
 
     private var prefs = app.getSharedPreferences(
         "levkaantonov.com.study.recorder",
@@ -45,7 +45,7 @@ class RecorderViewModel(private val app: Application) : AndroidViewModel(app) {
         resetTimer()
     }
 
-    private fun resetTimer() {
+    fun resetTimer() {
         _elapsedTime.value = timeFormatter(0)
         viewModelScope.launch {
             saveTime(0)

@@ -10,4 +10,9 @@
     <string name="default_file_name">record</string>
     <string name="mp4">.mp4</string>
     <string name="recording_finished">recording finished</string>
+    <string name="recording_started">recording stated</string>
+    <string name="app_folder_name">Recorder</string>
+    <string name="toast_Permissions_not_granted">permissions not granted</string>
+    <string name="notification_channel_name">19941</string>
+    <string name="notification_channel_id">1994</string>
 </resources>

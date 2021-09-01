@@ -1,16 +1,38 @@
 package levkaantonov.com.study.recorder.ui.fragments.recorder
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import levkaantonov.com.study.recorder.R
 import levkaantonov.com.study.recorder.databinding.FragmentRecorderBinding
+import levkaantonov.com.study.recorder.db.RecordDao
+import levkaantonov.com.study.recorder.db.RecordsDb
+import levkaantonov.com.study.recorder.services.RecordService
+import levkaantonov.com.study.recorder.ui.activities.MainActivity
+import java.io.File
 
 
 class RecorderFragment : Fragment() {
     private var _binding: FragmentRecorderBinding? = null
     private val binding get() = checkNotNull(_binding)
+    private val permissionRecordAudio = android.Manifest.permission.RECORD_AUDIO;
+    private val permissionForegroundService = android.Manifest.permission.FOREGROUND_SERVICE;
+    private val viewModel: RecorderViewModel by viewModels()
+
+    private var count: Int? = null
+    private var recordDao: RecordDao? = null
+    private val MY_PERMISSIONS_RECORD_AUDIO = 123
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -18,6 +40,121 @@ class RecorderFragment : Fragment() {
     ): View {
         _binding = FragmentRecorderBinding.inflate(layoutInflater, container, false)
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        recordDao = context?.let { RecordsDb.getInstance(it).recordDao }
+        recordDao?.getCount()?.observe(viewLifecycleOwner) {
+            count = it
+        }
+
+        binding.viewModel = viewModel
+        val isServiceRunning = (requireActivity() as MainActivity).isServiceRunning()
+
+        if (!isServiceRunning) {
+            viewModel.resetTimer()
+        } else {
+            binding.recordingFab.setImageResource(R.drawable.ic_media_stop)
+        }
+
+        binding.recordingFab.setOnClickListener {
+            if (ContextCompat.checkSelfPermission(
+                    requireContext(), permissionRecordAudio
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissions(
+                    arrayOf(permissionRecordAudio), 0
+                )
+            } else {
+                if (isServiceRunning) {
+                    onRecord(false)
+                    viewModel.stopTimer()
+                } else {
+                    onRecord(true)
+                    viewModel.startTimer()
+                }
+            }
+        }
+
+        createChannel(
+            getString(R.string.notification_channel_id),
+            getString(R.string.notification_channel_name)
+        )
+    }
+
+    private fun onRecord(start: Boolean) {
+        val serviceIntent = Intent(
+            requireActivity(),
+            RecordService::class.java
+        )
+
+        if (!start) {
+            binding.recordingFab.setImageResource(R.drawable.ic_mic)
+            requireActivity().apply {
+                stopService(serviceIntent)
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
+            return
+        }
+
+        binding.recordingFab.setImageResource(R.drawable.ic_media_stop)
+        showToast(getString(R.string.recording_started))
+        val folder = File(
+            requireActivity()
+                .getExternalFilesDir(null)
+                ?.absolutePath
+                .toString() +
+                    getString(R.string.app_folder_name)
+        )
+        if (!folder.exists()) {
+            folder.mkdir()
+        }
+        requireActivity().apply {
+            startService(serviceIntent)
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        when (requestCode) {
+            0 -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    onRecord(true)
+                    viewModel.startTimer()
+                } else {
+                    showToast(getString(R.string.toast_Permissions_not_granted))
+                }
+            }
+        }
+    }
+
+    private fun createChannel(channelId: String, channelName: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            channel.apply {
+                setShowBadge(false)
+                setSound(null, null)
+            }
+
+            val manager = requireActivity().getSystemService(
+                NotificationManager::class.java
+            )
+            manager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun showToast(str: String) {
+        Toast.makeText(requireContext(), str, Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {
