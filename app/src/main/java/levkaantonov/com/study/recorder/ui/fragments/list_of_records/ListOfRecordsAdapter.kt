@@ -7,8 +7,9 @@ import levkaantonov.com.study.recorder.databinding.RecordItemBinding
 import levkaantonov.com.study.recorder.db.Record
 import java.util.concurrent.TimeUnit
 
-class ListOfRecordsAdapter : RecyclerView.Adapter<ListOfRecordsAdapter.RecordViewHolder>() {
-
+class ListOfRecordsAdapter(
+    private val onClickListener: OnClickListener
+) : RecyclerView.Adapter<ListOfRecordsAdapter.RecordViewHolder>() {
     var data = listOf<Record>()
         set(value) {
             field = value
@@ -24,15 +25,36 @@ class ListOfRecordsAdapter : RecyclerView.Adapter<ListOfRecordsAdapter.RecordVie
         if (position == -1) {
             return
         }
-        holder.bind(data[position])
-
+        val item = data[position] ?: return
+        holder.bind(item)
     }
 
 
     override fun getItemCount(): Int = data.size
 
-    class RecordViewHolder(private val binding: RecordItemBinding) :
+    inner class RecordViewHolder(private val binding: RecordItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.apply {
+                root.setOnClickListener {
+                    val position = bindingAdapterPosition
+                    if (position != RecyclerView.NO_POSITION) {
+                        val record = data[position]
+                        onClickListener.playRecord(record.path)
+                    }
+                }
+
+                root.setOnLongClickListener {
+                    val position = bindingAdapterPosition
+                    if (position != RecyclerView.NO_POSITION) {
+                        val record = data[position]
+                        onClickListener.removeItem(record.path, record.id)
+                    }
+                    false
+                }
+            }
+        }
+
         fun bind(item: Record) {
             binding.apply {
                 val duration = item.length
@@ -47,4 +69,9 @@ class ListOfRecordsAdapter : RecyclerView.Adapter<ListOfRecordsAdapter.RecordVie
         }
     }
 
+}
+
+interface OnClickListener {
+    fun playRecord(filePath: String)
+    fun removeItem(itemPath: String, recordId: Int)
 }
