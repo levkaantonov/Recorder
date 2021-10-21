@@ -3,11 +3,12 @@ package levkaantonov.com.study.recorder.ui.fragments.remove_dialog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.*
-import levkaantonov.com.study.recorder.db.RecordDao
+import levkaantonov.com.study.recorder.data.RecordsRepository
 import java.io.File
+import javax.inject.Inject
 
-class RemoveRecordViewModel(
-    private var recordDao: RecordDao
+class RemoveRecordViewModel @Inject constructor(
+    private val recordsRepository: RecordsRepository
 ) : ViewModel() {
     private var job = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + job)
@@ -16,7 +17,7 @@ class RemoveRecordViewModel(
         try {
             uiScope.launch {
                 withContext(Dispatchers.IO) {
-                    recordDao.deleteById(itemId)
+                    recordsRepository.deleteById(itemId)
                 }
             }
         } catch (e: Exception) {
@@ -32,18 +33,14 @@ class RemoveRecordViewModel(
 
         file.delete()
     }
-}
 
-class RemoveRecordViewModelFactory(
-    private val recordDao: RecordDao
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(RemoveRecordViewModel::class.java)) {
-            return RemoveRecordViewModel(
-                recordDao
-            ) as T
+
+    class RemoveRecordViewModelFactory @Inject constructor(
+        private val recordsRepository: RecordsRepository
+    ) : ViewModelProvider.Factory {
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            require(modelClass == RemoveRecordViewModel::class.java)
+            return RemoveRecordViewModel(recordsRepository) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
-
 }

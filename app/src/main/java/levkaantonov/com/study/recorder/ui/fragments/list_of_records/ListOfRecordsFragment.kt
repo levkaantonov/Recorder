@@ -1,35 +1,42 @@
 package levkaantonov.com.study.recorder.ui.fragments.list_of_records
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import dagger.Lazy
+import levkaantonov.com.study.recorder.appComponent
 import levkaantonov.com.study.recorder.databinding.FragmentListOfRecordsBinding
-import levkaantonov.com.study.recorder.db.RecordsDb
 import levkaantonov.com.study.recorder.ui.fragments.player.PlayerFragment
 import levkaantonov.com.study.recorder.ui.fragments.remove_dialog.RemoveRecordFragment
+import levkaantonov.com.study.recorder.ui.utils.viewBinding
 import java.io.File
+import javax.inject.Inject
 
 class ListOfRecordsFragment : Fragment(), OnClickListener {
-    private var _binding: FragmentListOfRecordsBinding? = null
-    private val binding get() = checkNotNull(_binding)
+    @Inject
+    lateinit var factory: Lazy<ListOfRecordsViewModel.ListOfRecordsViewModelFactory>
+    private val viewModel: ListOfRecordsViewModel by viewModels { factory.get() }
+    private val binding by viewBinding(FragmentListOfRecordsBinding::inflate)
+
+    override fun onAttach(context: Context) {
+        context.appComponent.inject(this)
+        super.onAttach(context)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentListOfRecordsBinding.inflate(layoutInflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        val dao = RecordsDb.getInstance(requireContext().applicationContext).recordDao
-        val viewModel =
-            ListOfRecordsViewModelFactory(dao).create(ListOfRecordsViewModel::class.java)
 
         binding.viewModel = viewModel
         val adapter = ListOfRecordsAdapter(this)
@@ -50,7 +57,6 @@ class ListOfRecordsFragment : Fragment(), OnClickListener {
             Toast.makeText(requireContext(), "file not found", Toast.LENGTH_SHORT).show()
             return
         }
-
         try {
             val playerFragment = PlayerFragment.newInstance(filePath)
             val transaction = requireActivity()
@@ -72,10 +78,5 @@ class ListOfRecordsFragment : Fragment(), OnClickListener {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

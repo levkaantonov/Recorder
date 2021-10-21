@@ -1,31 +1,28 @@
 package levkaantonov.com.study.recorder.ui.fragments.recorder
 
-import android.app.Application
-import android.content.Context
+import android.content.SharedPreferences
 import android.os.CountDownTimer
 import android.os.SystemClock
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import levkaantonov.com.study.recorder.data.RecordsRepository
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class RecorderViewModel(private val app: Application) : AndroidViewModel(app) {
+class RecorderViewModel @Inject constructor(
+    private val prefs: SharedPreferences,
+    recordsRepository: RecordsRepository
+) : ViewModel() {
+
+    private val _elapsedTime = MutableLiveData<String>()
+    val elapsedTime: LiveData<String> = _elapsedTime
+    val countOfRecords: LiveData<Int> = recordsRepository.getCount()
 
     private val TRIGGER_TIME = "TRIGGER_AT"
     private val second: Long = 1000L
-    private val _elapsedTime = MutableLiveData<String>()
-    val elapsedTime: LiveData<String> = _elapsedTime
-
-    private var prefs = app.getSharedPreferences(
-        "levkaantonov.com.study.recorder",
-        Context.MODE_PRIVATE
-    )
-
-    private lateinit var timer: CountDownTimer
+    private var timer: CountDownTimer? = null
 
     init {
         createTimer()
@@ -41,7 +38,7 @@ class RecorderViewModel(private val app: Application) : AndroidViewModel(app) {
     }
 
     fun stopTimer() {
-        timer.cancel()
+        timer?.cancel()
         resetTimer()
     }
 
@@ -63,7 +60,6 @@ class RecorderViewModel(private val app: Application) : AndroidViewModel(app) {
     private fun createTimer() {
         viewModelScope.launch {
             val triggerTime = loadTime()
-
             timer = object : CountDownTimer(triggerTime, second) {
                 override fun onTick(millisUntilFinished: Long) {
                     _elapsedTime.value = timeFormatter(SystemClock.elapsedRealtime() - triggerTime)
@@ -73,7 +69,7 @@ class RecorderViewModel(private val app: Application) : AndroidViewModel(app) {
                     resetTimer()
                 }
             }
-            timer.start()
+            timer?.start()
         }
     }
 
@@ -88,4 +84,14 @@ class RecorderViewModel(private val app: Application) : AndroidViewModel(app) {
         withContext(Dispatchers.IO) {
             prefs.getLong(TRIGGER_TIME, 0)
         }
+
+    class RecorderViewModelFactory @Inject constructor(
+        private val prefs: SharedPreferences,
+        private val recordsRepository: RecordsRepository
+    ) : ViewModelProvider.Factory {
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            require(modelClass == RecorderViewModel::class.java)
+            return RecorderViewModel(prefs, recordsRepository) as T
+        }
+    }
 }

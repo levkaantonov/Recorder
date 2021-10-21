@@ -1,4 +1,4 @@
-package levkaantonov.com.study.recorder.db
+package levkaantonov.com.study.recorder.data.db
 
 import android.content.Context
 import androidx.room.Database

@@ -2,51 +2,37 @@ package levkaantonov.com.study.recorder.ui.fragments.remove_dialog
 
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
+import dagger.Lazy
 import levkaantonov.com.study.recorder.R
-import levkaantonov.com.study.recorder.databinding.FragmentRemoveRecordBinding
-import levkaantonov.com.study.recorder.db.RecordsDb
-import levkaantonov.com.study.recorder.ui.fragments.player.PlayerFragment
+import levkaantonov.com.study.recorder.appComponent
+import levkaantonov.com.study.recorder.ui.utils.args
+import javax.inject.Inject
 
 class RemoveRecordFragment : DialogFragment() {
-//    private var _binding: FragmentRemoveRecordBinding? = null
-//    private val binding get() = checkNotNull(_binding)
-    private var viewModel: RemoveRecordViewModel? = null
+    @Inject
+    lateinit var factory: Lazy<RemoveRecordViewModel.RemoveRecordViewModelFactory>
+    private val viewModel: RemoveRecordViewModel by viewModels { factory.get() }
+    private val itemPath: String by args()
+    private val itemId: Int by args()
 
-//    override fun onCreateView(
-//        inflater: LayoutInflater, container: ViewGroup?,
-//        savedInstanceState: Bundle?
-//    ): View {
-//        _binding = FragmentRemoveRecordBinding.inflate(layoutInflater, container, false)
-//        return binding.root
-//    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val application = requireActivity().application
-        val dao = RecordsDb.getInstance(application).recordDao
-
-        viewModel = ViewModelProvider(
-            this,
-            RemoveRecordViewModelFactory(dao)
-        ).get(RemoveRecordViewModel::class.java)
+    override fun onAttach(context: Context) {
+        context.appComponent.inject(this)
+        super.onAttach(context)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val itemPath = arguments?.getString(ARG_ITEM_PATH)
-        val itemId = arguments?.getInt(ARG_ITEM_ID)
+        requireContext().appComponent.inject(viewModel)
         return AlertDialog.Builder(requireActivity())
             .setTitle(getString(R.string.alert_dialog_delete_record_question))
             .setPositiveButton(getString(R.string.delete)) { _, _ ->
                 try {
-                    itemPath?.let { viewModel?.removeFile(it) }
-                    itemId?.let { viewModel?.removeItem(it) }
+                    viewModel.removeFile(itemPath)
+                    viewModel.removeItem(itemId)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -55,10 +41,9 @@ class RemoveRecordFragment : DialogFragment() {
             }.create()
     }
 
-
     companion object {
-        private const val ARG_ITEM_PATH = "recording_item_path"
-        private const val ARG_ITEM_ID = "recording_item_id"
+        private const val ARG_ITEM_PATH = "itemPath"
+        private const val ARG_ITEM_ID = "itemId"
 
         fun newInstance(itemId: Int, itemPath: String?): RemoveRecordFragment {
             val f = RemoveRecordFragment()

@@ -1,5 +1,6 @@
 package levkaantonov.com.study.recorder.services
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
@@ -11,17 +12,19 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.*
 import levkaantonov.com.study.recorder.R
-import levkaantonov.com.study.recorder.db.Record
-import levkaantonov.com.study.recorder.db.RecordDao
-import levkaantonov.com.study.recorder.db.RecordsDb
+import levkaantonov.com.study.recorder.appComponent
+import levkaantonov.com.study.recorder.data.RecordsRepository
+import levkaantonov.com.study.recorder.data.db.Record
 import levkaantonov.com.study.recorder.ui.activities.MainActivity
 import java.io.File
 import java.io.IOException
-import java.lang.Exception
 import java.text.SimpleDateFormat
+import javax.inject.Inject
 
 class RecordService : Service() {
-    private val CHANNEL_ID = getString(R.string.recordService)
+
+    @Inject
+    lateinit var recordsRepository: RecordsRepository
 
     private var _fileName: String? = null
     private var _path: String? = null
@@ -31,16 +34,15 @@ class RecordService : Service() {
 
     private var _endTimeMillis: Long = 0
 
-    private var _recordDao: RecordDao? = null
     private val job = Job()
     private val _uiScope = CoroutineScope(Dispatchers.Main + job)
 
-    override fun onBind(intent: Intent?): IBinder? = null
-
     override fun onCreate() {
         super.onCreate()
-        _recordDao = RecordsDb.getInstance(application).recordDao
+        application.appComponent.inject(this)
     }
+
+    override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         _countOfRecords = intent?.extras?.get("COUNT") as Int?
@@ -56,7 +58,7 @@ class RecordService : Service() {
 
     private fun startRecording() {
         setFileNameAndPath()
-
+        Log.d("TAG", "startRecording: $_path")
         _recorder = MediaRecorder()
         _recorder?.apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
@@ -80,33 +82,26 @@ class RecordService : Service() {
     }
 
     private fun stopRecording() {
-
-
         _recorder?.apply {
             stop()
             release()
         }
-
         Toast.makeText(
             this,
             getString(R.string.recording_finished),
             Toast.LENGTH_SHORT
         ).show()
-
         val record = Record(
             name = _fileName.toString(),
             path = _path.toString(),
             length = System.currentTimeMillis() - _startTimeMillis,
             timeOfCreation = System.currentTimeMillis()
         )
-
         _recorder = null
-
-
         try {
             _uiScope.launch {
                 withContext(Dispatchers.IO) {
-                    _recordDao?.create(record)
+                    recordsRepository.create(record)
                 }
             }
         } catch (e: Exception) {
@@ -138,6 +133,7 @@ class RecordService : Service() {
         return builder.build()
     }
 
+    @SuppressLint("SimpleDateFormat")
     private fun setFileNameAndPath() {
         var count = 0
         var file: File
@@ -145,13 +141,19 @@ class RecordService : Service() {
             .format(System.currentTimeMillis())
 
         do {
-            _fileName = getString(R.string.default_file_name) +
-                    "_" + dateTime + count + getString(R.string.mp4)
-            _path = applicationContext.getExternalFilesDir(null)?.absolutePath
-            _path += "/$_path"
-
+            _fileName = String.format(
+                "%s_%s_%d%s",
+                getString(R.string.default_file_name),
+                dateTime,
+                count,
+                getString(R.string.mp4)
+            )
+            _path = String.format(
+                "%s/%s",
+                applicationContext.getExternalFilesDir(null)?.absolutePath,
+                _fileName
+            )
             count++
-
             file = File(_path)
         } while (file.exists() && !file.isDirectory)
     }

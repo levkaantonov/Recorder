@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import levkaantonov.com.study.recorder.databinding.RecordItemBinding
-import levkaantonov.com.study.recorder.db.Record
+import levkaantonov.com.study.recorder.data.db.Record
 import java.util.concurrent.TimeUnit
 
 class ListOfRecordsAdapter(

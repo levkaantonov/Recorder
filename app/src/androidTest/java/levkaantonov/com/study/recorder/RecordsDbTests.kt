@@ -4,9 +4,9 @@ import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import junit.framework.Assert.assertEquals
-import levkaantonov.com.study.recorder.db.Record
-import levkaantonov.com.study.recorder.db.RecordDao
-import levkaantonov.com.study.recorder.db.RecordsDb
+import levkaantonov.com.study.recorder.data.db.Record
+import levkaantonov.com.study.recorder.data.db.RecordDao
+import levkaantonov.com.study.recorder.data.db.RecordsDb
 import org.junit.After
 import org.junit.Before
 import org.junit.Test

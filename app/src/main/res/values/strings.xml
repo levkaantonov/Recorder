@@ -5,7 +5,7 @@
     <string name="menu_record">Record</string>
     <string name="menu_list_of_records">List of records</string>
     <string name="recordService">recordService</string>
-    <string name="recordServiceName">levkaantonov.com.study.recorder.services.recordService</string>
+    <string name="recordServiceName">levkaantonov.com.study.recorder.services.RecordService</string>
     <string name="recording">Recording...</string>
     <string name="default_file_name">record</string>
     <string name="mp4">.mp4</string>
@@ -18,4 +18,5 @@
     <string name="alert_dialog_delete_record_question">Удалить запись?</string>
     <string name="delete">delete</string>
     <string name="cancel">cancel</string>
+    <string name="shared_prefs_name">levkaantonov.com.study.recorder</string>
 </resources>

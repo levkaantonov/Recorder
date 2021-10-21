@@ -2,22 +2,20 @@ package levkaantonov.com.study.recorder.ui.fragments.list_of_records
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import levkaantonov.com.study.recorder.db.RecordDao
-import java.lang.IllegalArgumentException
+import levkaantonov.com.study.recorder.data.RecordsRepository
+import javax.inject.Inject
 
-class ListOfRecordsViewModel(
-    private val recordDao: RecordDao
+class ListOfRecordsViewModel @Inject constructor(
+    recordsRepository: RecordsRepository
 ) : ViewModel() {
-    val records = recordDao?.getALl()
-}
+    val records = recordsRepository.getALl()
 
-class ListOfRecordsViewModelFactory(
-    private val recordDao: RecordDao
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ListOfRecordsViewModel::class.java)) {
-            return ListOfRecordsViewModel(recordDao) as T
+    class ListOfRecordsViewModelFactory @Inject constructor(
+        private val recordsRepository: RecordsRepository
+    ) : ViewModelProvider.Factory {
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            require(modelClass == ListOfRecordsViewModel::class.java)
+            return ListOfRecordsViewModel(recordsRepository) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

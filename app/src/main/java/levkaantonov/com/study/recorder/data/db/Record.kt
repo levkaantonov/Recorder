@@ -1,4 +1,4 @@
-package levkaantonov.com.study.recorder.db
+package levkaantonov.com.study.recorder.data.db
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

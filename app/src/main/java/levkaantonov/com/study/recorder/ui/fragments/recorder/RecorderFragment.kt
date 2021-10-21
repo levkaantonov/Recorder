@@ -2,6 +2,7 @@ package levkaantonov.com.study.recorder.ui.fragments.recorder
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -14,51 +15,65 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import dagger.Lazy
 import levkaantonov.com.study.recorder.R
+import levkaantonov.com.study.recorder.appComponent
 import levkaantonov.com.study.recorder.databinding.FragmentRecorderBinding
-import levkaantonov.com.study.recorder.db.RecordDao
-import levkaantonov.com.study.recorder.db.RecordsDb
 import levkaantonov.com.study.recorder.services.RecordService
-import levkaantonov.com.study.recorder.ui.activities.MainActivity
+import levkaantonov.com.study.recorder.ui.utils.isServiceRunning
+import levkaantonov.com.study.recorder.ui.utils.viewBinding
 import java.io.File
+import javax.inject.Inject
 
 
 class RecorderFragment : Fragment() {
-    private var _binding: FragmentRecorderBinding? = null
-    private val binding get() = checkNotNull(_binding)
-    private val permissionRecordAudio = android.Manifest.permission.RECORD_AUDIO;
-    private val permissionForegroundService = android.Manifest.permission.FOREGROUND_SERVICE;
-    private val viewModel: RecorderViewModel by viewModels()
+    @Inject
+    lateinit var recorderViewModelFactory: Lazy<RecorderViewModel.RecorderViewModelFactory>
+    private val viewModel: RecorderViewModel by viewModels { recorderViewModelFactory.get() }
+
+    private val binding: FragmentRecorderBinding by viewBinding(FragmentRecorderBinding::inflate)
 
     private var count: Int? = null
-    private var recordDao: RecordDao? = null
-    private val MY_PERMISSIONS_RECORD_AUDIO = 123
+
+    override fun onAttach(context: Context) {
+        context.applicationContext.appComponent.inject(this)
+        super.onAttach(context)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentRecorderBinding.inflate(layoutInflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        recordDao = context?.let { RecordsDb.getInstance(it).recordDao }
-        recordDao?.getCount()?.observe(viewLifecycleOwner) {
-            count = it
-        }
 
-        binding.viewModel = viewModel
-        val isServiceRunning = (requireActivity() as MainActivity).isServiceRunning()
+        subscribeUi()
 
-        if (!isServiceRunning) {
+        if (!requireActivity().isServiceRunning()) {
             viewModel.resetTimer()
         } else {
             binding.recordingFab.setImageResource(R.drawable.ic_media_stop)
         }
 
+        createChannel(
+            getString(R.string.notification_channel_id),
+            getString(R.string.notification_channel_name)
+        )
+    }
+
+    private fun subscribeUi() {
+        viewModel.countOfRecords.observe(viewLifecycleOwner) { count ->
+            this.count = count
+        }
+        viewModel.elapsedTime.observe(viewLifecycleOwner) { elapsedTime ->
+            binding.tvTimer.text = elapsedTime
+        }
         binding.recordingFab.setOnClickListener {
+            val permissionRecordAudio = android.Manifest.permission.RECORD_AUDIO
+            //TODO( Заменить на ActivityResult API)
             if (ContextCompat.checkSelfPermission(
                     requireContext(), permissionRecordAudio
                 ) != PackageManager.PERMISSION_GRANTED
@@ -67,7 +82,7 @@ class RecorderFragment : Fragment() {
                     arrayOf(permissionRecordAudio), 0
                 )
             } else {
-                if (isServiceRunning) {
+                if (requireActivity().isServiceRunning()) {
                     onRecord(false)
                     viewModel.stopTimer()
                 } else {
@@ -76,11 +91,6 @@ class RecorderFragment : Fragment() {
                 }
             }
         }
-
-        createChannel(
-            getString(R.string.notification_channel_id),
-            getString(R.string.notification_channel_name)
-        )
     }
 
     private fun onRecord(start: Boolean) {
@@ -97,7 +107,6 @@ class RecorderFragment : Fragment() {
             }
             return
         }
-
         binding.recordingFab.setImageResource(R.drawable.ic_media_stop)
         showToast(getString(R.string.recording_started))
         val folder = File(
@@ -155,10 +164,5 @@ class RecorderFragment : Fragment() {
 
     private fun showToast(str: String) {
         Toast.makeText(requireContext(), str, Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }
