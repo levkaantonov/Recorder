@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -30,10 +31,12 @@ class RecorderFragment : Fragment() {
     @Inject
     lateinit var recorderViewModelFactory: Lazy<RecorderViewModel.RecorderViewModelFactory>
     private val viewModel: RecorderViewModel by viewModels { recorderViewModelFactory.get() }
-
     private val binding: FragmentRecorderBinding by viewBinding(FragmentRecorderBinding::inflate)
 
     private var count: Int? = null
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(RequestPermission()) { requestPermissionCallback(it) }
 
     override fun onAttach(context: Context) {
         context.applicationContext.appComponent.inject(this)
@@ -73,14 +76,11 @@ class RecorderFragment : Fragment() {
         }
         binding.recordingFab.setOnClickListener {
             val permissionRecordAudio = android.Manifest.permission.RECORD_AUDIO
-            //TODO( Заменить на ActivityResult API)
             if (ContextCompat.checkSelfPermission(
                     requireContext(), permissionRecordAudio
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                requestPermissions(
-                    arrayOf(permissionRecordAudio), 0
-                )
+                requestPermissionLauncher.launch(permissionRecordAudio)
             } else {
                 if (requireActivity().isServiceRunning()) {
                     onRecord(false)
@@ -126,20 +126,12 @@ class RecorderFragment : Fragment() {
 
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        when (requestCode) {
-            0 -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    onRecord(true)
-                    viewModel.startTimer()
-                } else {
-                    showToast(getString(R.string.toast_Permissions_not_granted))
-                }
-            }
+    private fun requestPermissionCallback(granted: Boolean) {
+        if (granted) {
+            onRecord(true)
+            viewModel.startTimer()
+        } else {
+            showToast(getString(R.string.toast_Permissions_not_granted))
         }
     }
 

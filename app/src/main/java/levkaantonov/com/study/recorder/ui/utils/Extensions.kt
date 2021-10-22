@@ -9,7 +9,7 @@ import androidx.viewbinding.ViewBinding
 import levkaantonov.com.study.recorder.R
 import levkaantonov.com.study.recorder.delegates.ArgsDelegate
 import levkaantonov.com.study.recorder.delegates.LazyProvider
-import levkaantonov.com.study.recorder.delegates.ViewBindingFragmentDelegate
+import levkaantonov.com.study.recorder.delegates.FragmentViewBindingDelegate
 
 
 fun Activity.isServiceRunning(): Boolean {
@@ -22,8 +22,9 @@ fun Activity.isServiceRunning(): Boolean {
     return false
 }
 
-fun <T : ViewBinding> Fragment.viewBinding(inflaterFactory: (inflater: LayoutInflater) -> T) =
-    ViewBindingFragmentDelegate(this, inflaterFactory)
+inline fun <reified F : Fragment, T : ViewBinding> F.viewBinding(
+    noinline inflaterFactory: (inflater: LayoutInflater) -> T
+) = FragmentViewBindingDelegate<F, T>(inflaterFactory)
 
 
 inline fun <reified T> Fragment.args(): LazyProvider<Fragment, T> =
