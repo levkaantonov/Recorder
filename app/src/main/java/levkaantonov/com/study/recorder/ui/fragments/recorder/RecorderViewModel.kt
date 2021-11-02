@@ -1,26 +1,23 @@
 package levkaantonov.com.study.recorder.ui.fragments.recorder
 
-import android.content.SharedPreferences
 import android.os.CountDownTimer
 import android.os.SystemClock
 import androidx.lifecycle.*
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import levkaantonov.com.study.recorder.data.RecordsRepository
+import levkaantonov.com.study.recorder.data.db.RecordsRepository
+import levkaantonov.com.study.recorder.data.preferences.PreferencesRepository
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class RecorderViewModel @Inject constructor(
-    private val prefs: SharedPreferences,
+    private val prefs: PreferencesRepository,
     recordsRepository: RecordsRepository
 ) : ViewModel() {
 
     private val _elapsedTime = MutableLiveData<String>()
     val elapsedTime: LiveData<String> = _elapsedTime
     val countOfRecords: LiveData<Int> = recordsRepository.getCount()
-
-    private val TRIGGER_TIME = "TRIGGER_AT"
     private val second: Long = 1000L
     private var timer: CountDownTimer? = null
 
@@ -59,34 +56,24 @@ class RecorderViewModel @Inject constructor(
 
     private fun createTimer() {
         viewModelScope.launch {
-            val triggerTime = loadTime()
-            timer = object : CountDownTimer(triggerTime, second) {
+            val triggerTime = prefs.recorderFlow.first()
+            timer = object : CountDownTimer(triggerTime.playerTriggerAt, second) {
                 override fun onTick(millisUntilFinished: Long) {
-                    _elapsedTime.value = timeFormatter(SystemClock.elapsedRealtime() - triggerTime)
+                    _elapsedTime.value =
+                        timeFormatter(SystemClock.elapsedRealtime() - triggerTime.playerTriggerAt)
                 }
 
                 override fun onFinish() {
                     resetTimer()
                 }
-            }
-            timer?.start()
+            }.apply { start() }
         }
     }
 
-    private suspend fun saveTime(triggerTime: Long) {
-        withContext(Dispatchers.IO) {
-            prefs.edit()
-                .putLong(TRIGGER_TIME, triggerTime).apply()
-        }
-    }
-
-    private suspend fun loadTime(): Long =
-        withContext(Dispatchers.IO) {
-            prefs.getLong(TRIGGER_TIME, 0)
-        }
+    private suspend fun saveTime(triggerTime: Long) = prefs.saveTriggerAt(triggerTime)
 
     class RecorderViewModelFactory @Inject constructor(
-        private val prefs: SharedPreferences,
+        private val prefs: PreferencesRepository,
         private val recordsRepository: RecordsRepository
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {

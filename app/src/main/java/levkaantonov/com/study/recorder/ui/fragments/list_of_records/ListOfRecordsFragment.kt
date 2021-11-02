@@ -37,7 +37,6 @@ class ListOfRecordsFragment : Fragment(), OnClickListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         binding.viewModel = viewModel
         val adapter = ListOfRecordsAdapter(this)
         binding.rvRecords.adapter = adapter
@@ -47,7 +46,6 @@ class ListOfRecordsFragment : Fragment(), OnClickListener {
                 adapter.data = it
             }
         }
-
         binding.lifecycleOwner = this
     }
 

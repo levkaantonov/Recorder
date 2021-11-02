@@ -1,9 +1,10 @@
-package levkaantonov.com.study.recorder.data
+package levkaantonov.com.study.recorder.data.db
 
 import androidx.lifecycle.LiveData
 import levkaantonov.com.study.recorder.data.db.LiveDataMutableListOf
 import levkaantonov.com.study.recorder.data.db.Record
 import levkaantonov.com.study.recorder.data.db.RecordDao
+import levkaantonov.com.study.recorder.data.db.RecordsRepository
 import javax.inject.Inject
 
 class RecordsRepositoryImpl @Inject constructor(

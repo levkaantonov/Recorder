@@ -1,14 +1,14 @@
 package levkaantonov.com.study.recorder.di
 
 import android.app.Application
-import android.content.Context
-import android.content.SharedPreferences
 import dagger.*
-import levkaantonov.com.study.recorder.R
-import levkaantonov.com.study.recorder.data.RecordsRepository
-import levkaantonov.com.study.recorder.data.RecordsRepositoryImpl
 import levkaantonov.com.study.recorder.data.db.RecordDao
 import levkaantonov.com.study.recorder.data.db.RecordsDb
+import levkaantonov.com.study.recorder.data.db.RecordsRepository
+import levkaantonov.com.study.recorder.data.db.RecordsRepositoryImpl
+import levkaantonov.com.study.recorder.data.preferences.PreferencesDataStore
+import levkaantonov.com.study.recorder.data.preferences.PreferencesRepository
+import levkaantonov.com.study.recorder.data.preferences.PreferencesRepositoryImpl
 import levkaantonov.com.study.recorder.services.RecordService
 import levkaantonov.com.study.recorder.ui.fragments.list_of_records.ListOfRecordsFragment
 import levkaantonov.com.study.recorder.ui.fragments.player.PlayerFragment
@@ -65,6 +65,12 @@ interface AppBindModule {
     fun bindRecordsRepositoryImplToRecordsRepository(
         recordsRepository: RecordsRepositoryImpl
     ): RecordsRepository
+
+    @Singleton
+    @Binds
+    fun bindPreferencesRepositoryImplToPreferencesRepository(
+        repository: PreferencesRepositoryImpl
+    ): PreferencesRepository
 }
 
 @Module
@@ -72,10 +78,7 @@ class SharedPrefsModule {
 
     @Singleton
     @Provides
-    fun provideSharedPrefs(application: Application): SharedPreferences {
-        return application.getSharedPreferences(
-            application.getString(R.string.shared_prefs_name),
-            Context.MODE_PRIVATE
-        )
+    fun providePrefsDataStore(application: Application): PreferencesDataStore {
+        return PreferencesDataStore(application)
     }
 }

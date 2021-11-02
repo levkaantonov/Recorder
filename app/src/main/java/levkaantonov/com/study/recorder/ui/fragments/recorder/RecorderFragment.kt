@@ -12,7 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts.*
+import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -25,7 +25,6 @@ import levkaantonov.com.study.recorder.ui.utils.isServiceRunning
 import levkaantonov.com.study.recorder.ui.utils.viewBinding
 import java.io.File
 import javax.inject.Inject
-
 
 class RecorderFragment : Fragment() {
     @Inject
@@ -52,15 +51,12 @@ class RecorderFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         subscribeUi()
-
         if (!requireActivity().isServiceRunning()) {
             viewModel.resetTimer()
         } else {
             binding.recordingFab.setImageResource(R.drawable.ic_media_stop)
         }
-
         createChannel(
             getString(R.string.notification_channel_id),
             getString(R.string.notification_channel_name)

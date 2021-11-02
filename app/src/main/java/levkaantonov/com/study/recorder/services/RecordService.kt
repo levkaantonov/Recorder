@@ -13,7 +13,7 @@ import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.*
 import levkaantonov.com.study.recorder.R
 import levkaantonov.com.study.recorder.appComponent
-import levkaantonov.com.study.recorder.data.RecordsRepository
+import levkaantonov.com.study.recorder.data.db.RecordsRepository
 import levkaantonov.com.study.recorder.data.db.Record
 import levkaantonov.com.study.recorder.ui.activities.MainActivity
 import java.io.File

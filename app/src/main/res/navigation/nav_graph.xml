@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
     app:startDestination="@id/recorderFragment">
-
     <fragment
         android:id="@+id/recorderFragment"
         android:name="levkaantonov.com.study.recorder.ui.fragments.recorder.RecorderFragment"

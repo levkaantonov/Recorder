@@ -1,4 +1,4 @@
-package levkaantonov.com.study.recorder.data
+package levkaantonov.com.study.recorder.data.db
 
 import androidx.lifecycle.LiveData
 import levkaantonov.com.study.recorder.data.db.LiveDataMutableListOf

@@ -3,7 +3,7 @@ package levkaantonov.com.study.recorder.ui.fragments.remove_dialog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.*
-import levkaantonov.com.study.recorder.data.RecordsRepository
+import levkaantonov.com.study.recorder.data.db.RecordsRepository
 import java.io.File
 import javax.inject.Inject
 
