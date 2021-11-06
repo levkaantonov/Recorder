@@ -22,9 +22,9 @@ fun Activity.isServiceRunning(): Boolean {
     return false
 }
 
-inline fun <reified F : Fragment, T : ViewBinding> F.viewBinding(
+inline fun <reified T : ViewBinding> Fragment.viewBinding(
     noinline inflaterFactory: (inflater: LayoutInflater) -> T
-) = FragmentViewBindingDelegate<F, T>(inflaterFactory)
+) = FragmentViewBindingDelegate<Fragment, T>(inflaterFactory)
 
 
 inline fun <reified T> Fragment.args(): LazyProvider<Fragment, T> =

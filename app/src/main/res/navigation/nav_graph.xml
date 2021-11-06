@@ -3,15 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/recorderFragment">
+    app:startDestination="@id/pagerFragment">
     <fragment
-        android:id="@+id/recorderFragment"
-        android:name="levkaantonov.com.study.recorder.ui.fragments.recorder.RecorderFragment"
-        android:label="fragment_recorder"
-        tools:layout="@layout/fragment_recorder" />
-    <fragment
-        android:id="@+id/listOfRecordsFragment"
-        android:name="levkaantonov.com.study.recorder.ui.fragments.list_of_records.ListOfRecordsFragment"
-        android:label="fragment_list_of_records"
-        tools:layout="@layout/fragment_list_of_records" />
+        android:id="@+id/pagerFragment"
+        android:name="levkaantonov.com.study.recorder.ui.fragments.view_pager.PagerFragment"
+        android:label="fragment_pager"
+        tools:layout="@layout/fragment_pager" />
 </navigation>

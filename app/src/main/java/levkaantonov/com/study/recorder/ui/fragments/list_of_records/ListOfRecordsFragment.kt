@@ -11,6 +11,7 @@ import androidx.fragment.app.viewModels
 import dagger.Lazy
 import levkaantonov.com.study.recorder.appComponent
 import levkaantonov.com.study.recorder.databinding.FragmentListOfRecordsBinding
+import levkaantonov.com.study.recorder.ui.fragments.list_of_records.ListOfRecordsViewModel.*
 import levkaantonov.com.study.recorder.ui.fragments.player.PlayerFragment
 import levkaantonov.com.study.recorder.ui.fragments.remove_dialog.RemoveRecordFragment
 import levkaantonov.com.study.recorder.ui.utils.viewBinding
@@ -18,10 +19,15 @@ import java.io.File
 import javax.inject.Inject
 
 class ListOfRecordsFragment : Fragment(), OnClickListener {
-    @Inject
-    lateinit var factory: Lazy<ListOfRecordsViewModel.ListOfRecordsViewModelFactory>
+
+    private lateinit var factory: Lazy<ListOfRecordsViewModelFactory>
     private val viewModel: ListOfRecordsViewModel by viewModels { factory.get() }
     private val binding by viewBinding(FragmentListOfRecordsBinding::inflate)
+
+    @Inject
+    fun injectFactory(factory: Lazy<ListOfRecordsViewModelFactory>) {
+        this.factory = factory
+    }
 
     override fun onAttach(context: Context) {
         context.appComponent.inject(this)
